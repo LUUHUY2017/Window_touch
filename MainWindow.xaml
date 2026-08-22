@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:IDE_Touch_Window"
         mc:Ignorable="d"
         Title="FloatingIcon" 
-        Height="200" Width="200"
+        Height="260" Width="260"
         Topmost="True"
         AllowsTransparency="True" 
         WindowStyle="None" 
@@ -17,15 +17,15 @@
     <Window.Resources>
         <!-- Modern Rounded Action Button Style -->
         <Style x:Key="MenuButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#CC1F2937"/>
+            <Setter Property="Background" Value="#DD1F2937"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#4B5563"/>
+            <Setter Property="BorderBrush" Value="#6B7280"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="Width" Value="85"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Width" Value="82"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -33,9 +33,9 @@
                                 Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="18">
+                                CornerRadius="17">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.4" Color="#000000"/>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.5" Color="#000000"/>
                             </Border.Effect>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -55,7 +55,7 @@
         </Style>
 
         <Style x:Key="ExitButtonStyle" TargetType="Button" BasedOn="{StaticResource MenuButtonStyle}">
-            <Setter Property="Background" Value="#CC991B1B"/>
+            <Setter Property="Background" Value="#DD991B1B"/>
             <Setter Property="BorderBrush" Value="#FCA5A5"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -64,9 +64,9 @@
                                 Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="18">
+                                CornerRadius="17">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.4" Color="#000000"/>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.5" Color="#000000"/>
                             </Border.Effect>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -87,7 +87,7 @@
 
     <Grid x:Name="MainGrid">
         <!-- Circular Sub-Menu Canvas -->
-        <Canvas x:Name="MenuCanvas" Width="200" Height="200" RenderTransformOrigin="0.5,0.5" Visibility="Collapsed">
+        <Canvas x:Name="MenuCanvas" Width="260" Height="260" RenderTransformOrigin="0.5,0.5" Visibility="Collapsed">
             <Canvas.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform x:Name="MenuScale" ScaleX="0.2" ScaleY="0.2"/>
@@ -96,19 +96,19 @@
             </Canvas.RenderTransform>
 
             <Button x:Name="BtnScreenshot" 
-                    Canvas.Left="62.5" Canvas.Top="14" 
+                    Canvas.Left="89" Canvas.Top="20" 
                     Content="📷 Chụp" 
                     Style="{StaticResource MenuButtonStyle}" 
                     Click="BtnScreenshot_Click"/>
 
             <Button x:Name="BtnDesktop" 
-                    Canvas.Left="6" Canvas.Top="126" 
+                    Canvas.Left="15" Canvas.Top="113" 
                     Content="💻 Desktop" 
                     Style="{StaticResource MenuButtonStyle}" 
                     Click="BtnDesktop_Click"/>
 
             <Button x:Name="BtnExit" 
-                    Canvas.Left="119" Canvas.Top="126" 
+                    Canvas.Left="163" Canvas.Top="113" 
                     Content="❌ Thoát" 
                     Style="{StaticResource ExitButtonStyle}" 
                     Click="BtnExit_Click"/>
@@ -136,9 +136,9 @@
                        VerticalAlignment="Center"/>
         </Border>
 
-        <!-- Central Main Icon (Transparent Anime Character 60x80) -->
+        <!-- Central Main Icon (Transparent Anime Character Cutout) -->
         <Grid x:Name="MainIconGrid" 
-              Width="60" Height="80" 
+              Width="68" Height="88" 
               HorizontalAlignment="Center" 
               VerticalAlignment="Center" 
               Cursor="Hand"
@@ -147,10 +147,13 @@
               PreviewMouseLeftButtonUp="MainIcon_PreviewMouseLeftButtonUp">
             
             <Grid.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.4" Color="#000000"/>
+                <DropShadowEffect BlurRadius="12" ShadowDepth="4" Opacity="0.6" Color="#000000"/>
             </Grid.Effect>
 
-            <Image x:Name="IconImage" Width="60" Height="80" Stretch="Uniform"/>
+            <!-- Subtle Glassmorphism Card Backing -->
+            <Border CornerRadius="16" Background="#28000000" BorderBrush="#40FFFFFF" BorderThickness="1.5"/>
+
+            <Image x:Name="IconImage" Source="icon.png" Width="64" Height="84" Stretch="Uniform" Margin="2"/>
         </Grid>
     </Grid>
 </Window>
