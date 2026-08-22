@@ -53,10 +53,11 @@ public partial class MainWindow : Window
                     bitmap.Freeze();
                     IconImage.Source = bitmap;
                 }
+                FallbackText.Visibility = Visibility.Collapsed;
             }
             else
             {
-                MessageBox.Show($"Không tìm thấy file icon.png tại: {iconPath}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                FallbackText.Visibility = Visibility.Visible;
             }
         }
         catch (Exception ex)

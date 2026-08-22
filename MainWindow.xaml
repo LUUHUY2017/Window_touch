@@ -10,22 +10,22 @@
         Topmost="True"
         AllowsTransparency="True" 
         WindowStyle="None" 
-        Background="Transparent"
+        Background="#01000000"
         ShowInTaskbar="True"
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <!-- Modern Rounded Action Button Style -->
         <Style x:Key="MenuButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#DD1F2937"/>
+            <Setter Property="Background" Value="#EE1E293B"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#6B7280"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="BorderBrush" Value="#FF38BDF8"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Height" Value="34"/>
-            <Setter Property="Width" Value="82"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Width" Value="84"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -33,7 +33,7 @@
                                 Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="17">
+                                CornerRadius="18">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.5" Color="#000000"/>
                             </Border.Effect>
@@ -41,11 +41,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#FF374151"/>
+                                <Setter TargetName="border" Property="Background" Value="#FF334155"/>
                                 <Setter TargetName="border" Property="BorderBrush" Value="#FF60A5FA"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#FF111827"/>
+                                <Setter TargetName="border" Property="Background" Value="#FF0F172A"/>
                                 <Setter TargetName="border" Property="BorderBrush" Value="#FF3B82F6"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -55,8 +55,8 @@
         </Style>
 
         <Style x:Key="ExitButtonStyle" TargetType="Button" BasedOn="{StaticResource MenuButtonStyle}">
-            <Setter Property="Background" Value="#DD991B1B"/>
-            <Setter Property="BorderBrush" Value="#FCA5A5"/>
+            <Setter Property="Background" Value="#EE7F1D1D"/>
+            <Setter Property="BorderBrush" Value="#FFF87171"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -64,7 +64,7 @@
                                 Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="17">
+                                CornerRadius="18">
                             <Border.Effect>
                                 <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.5" Color="#000000"/>
                             </Border.Effect>
@@ -73,7 +73,7 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="#DC2626"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="#F87171"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#FCA5A5"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="#991B1B"/>
@@ -96,19 +96,19 @@
             </Canvas.RenderTransform>
 
             <Button x:Name="BtnScreenshot" 
-                    Canvas.Left="89" Canvas.Top="20" 
+                    Canvas.Left="88" Canvas.Top="18" 
                     Content="📷 Chụp" 
                     Style="{StaticResource MenuButtonStyle}" 
                     Click="BtnScreenshot_Click"/>
 
             <Button x:Name="BtnDesktop" 
-                    Canvas.Left="15" Canvas.Top="113" 
+                    Canvas.Left="12" Canvas.Top="112" 
                     Content="💻 Desktop" 
                     Style="{StaticResource MenuButtonStyle}" 
                     Click="BtnDesktop_Click"/>
 
             <Button x:Name="BtnExit" 
-                    Canvas.Left="163" Canvas.Top="113" 
+                    Canvas.Left="164" Canvas.Top="112" 
                     Content="❌ Thoát" 
                     Style="{StaticResource ExitButtonStyle}" 
                     Click="BtnExit_Click"/>
@@ -136,9 +136,9 @@
                        VerticalAlignment="Center"/>
         </Border>
 
-        <!-- Central Main Icon (Transparent Anime Character Cutout) -->
+        <!-- Central Main Icon Card -->
         <Grid x:Name="MainIconGrid" 
-              Width="68" Height="88" 
+              Width="70" Height="90" 
               HorizontalAlignment="Center" 
               VerticalAlignment="Center" 
               Cursor="Hand"
@@ -147,13 +147,14 @@
               PreviewMouseLeftButtonUp="MainIcon_PreviewMouseLeftButtonUp">
             
             <Grid.Effect>
-                <DropShadowEffect BlurRadius="12" ShadowDepth="4" Opacity="0.6" Color="#000000"/>
+                <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.6" Color="#000000"/>
             </Grid.Effect>
 
-            <!-- Subtle Glassmorphism Card Backing -->
-            <Border CornerRadius="16" Background="#28000000" BorderBrush="#40FFFFFF" BorderThickness="1.5"/>
+            <!-- Visible Card Container with Cyan Border -->
+            <Border CornerRadius="18" Background="#EE1E293B" BorderBrush="#FF38BDF8" BorderThickness="2"/>
 
             <Image x:Name="IconImage" Width="64" Height="84" Stretch="Uniform" Margin="2"/>
+            <TextBlock x:Name="FallbackText" Text="🌸" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
         </Grid>
     </Grid>
 </Window>
