@@ -1,0 +1,163 @@
+<Window x:Class="IDE_Touch_Window.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:IDE_Touch_Window"
+        mc:Ignorable="d"
+        Title="FloatingIcon" 
+        Height="200" Width="200"
+        Topmost="True"
+        AllowsTransparency="True" 
+        WindowStyle="None" 
+        Background="Transparent"
+        ShowInTaskbar="True"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <!-- Modern Rounded Action Button Style -->
+        <Style x:Key="MenuButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#CC1F2937"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#4B5563"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Width" Value="85"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="18">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.4" Color="#000000"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FF374151"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#FF60A5FA"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#FF111827"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#FF3B82F6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ExitButtonStyle" TargetType="Button" BasedOn="{StaticResource MenuButtonStyle}">
+            <Setter Property="Background" Value="#CC991B1B"/>
+            <Setter Property="BorderBrush" Value="#FCA5A5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="18">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.4" Color="#000000"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#DC2626"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#F87171"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#991B1B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid x:Name="MainGrid">
+        <!-- Circular Sub-Menu Canvas -->
+        <Canvas x:Name="MenuCanvas" Width="200" Height="200" RenderTransformOrigin="0.5,0.5" Visibility="Collapsed">
+            <Canvas.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="MenuScale" ScaleX="0.2" ScaleY="0.2"/>
+                    <RotateTransform Angle="0"/>
+                </TransformGroup>
+            </Canvas.RenderTransform>
+
+            <Button x:Name="BtnScreenshot" 
+                    Canvas.Left="62.5" Canvas.Top="14" 
+                    Content="📷 Chụp" 
+                    Style="{StaticResource MenuButtonStyle}" 
+                    Click="BtnScreenshot_Click"/>
+
+            <Button x:Name="BtnDesktop" 
+                    Canvas.Left="6" Canvas.Top="126" 
+                    Content="💻 Desktop" 
+                    Style="{StaticResource MenuButtonStyle}" 
+                    Click="BtnDesktop_Click"/>
+
+            <Button x:Name="BtnExit" 
+                    Canvas.Left="119" Canvas.Top="126" 
+                    Content="❌ Thoát" 
+                    Style="{StaticResource ExitButtonStyle}" 
+                    Click="BtnExit_Click"/>
+        </Canvas>
+
+        <!-- Notification Toast Banner -->
+        <Border x:Name="ToastNotification" 
+                Width="200" Height="32" 
+                Background="#EE10B981" 
+                CornerRadius="16" 
+                VerticalAlignment="Top" 
+                HorizontalAlignment="Center" 
+                Margin="0,5,0,0" 
+                Visibility="Collapsed" 
+                Opacity="0">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.3" Color="#000000"/>
+            </Border.Effect>
+            <TextBlock x:Name="ToastText" 
+                       Text="📷 Đã chụp &amp; lưu ảnh!" 
+                       Foreground="White" 
+                       FontWeight="Bold" 
+                       FontSize="11" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- Central Main Icon (Anime Avatar) -->
+        <Grid x:Name="MainIconGrid" 
+              Width="76" Height="76" 
+              HorizontalAlignment="Center" 
+              VerticalAlignment="Center" 
+              Cursor="Hand"
+              PreviewMouseLeftButtonDown="MainIcon_PreviewMouseLeftButtonDown"
+              PreviewMouseMove="MainIcon_PreviewMouseMove"
+              PreviewMouseLeftButtonUp="MainIcon_PreviewMouseLeftButtonUp">
+            
+            <Grid.Effect>
+                <DropShadowEffect BlurRadius="16" ShadowDepth="3" Opacity="0.6" Color="#3B82F6"/>
+            </Grid.Effect>
+
+            <Ellipse x:Name="MainIconEllipse" Width="76" Height="76">
+                <Ellipse.Fill>
+                    <ImageBrush x:Name="IconImageBrush" Stretch="UniformToFill"/>
+                </Ellipse.Fill>
+            </Ellipse>
+
+            <!-- Glossy Border Ring -->
+            <Ellipse Width="76" Height="76" Stroke="#E2E8F0" StrokeThickness="2" IsHitTestVisible="False" Opacity="0.9"/>
+        </Grid>
+    </Grid>
+</Window>
