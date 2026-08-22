@@ -42,7 +42,7 @@ public partial class MainWindow : Window
                 bitmap.UriSource = new Uri(iconPath, UriKind.Absolute);
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
                 bitmap.EndInit();
-                IconImageBrush.ImageSource = bitmap;
+                IconImage.Source = bitmap;
             }
         }
         catch (Exception ex)

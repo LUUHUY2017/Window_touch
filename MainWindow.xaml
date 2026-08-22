@@ -136,9 +136,9 @@
                        VerticalAlignment="Center"/>
         </Border>
 
-        <!-- Central Main Icon (Anime Avatar) -->
+        <!-- Central Main Icon (Transparent Anime Character 60x80) -->
         <Grid x:Name="MainIconGrid" 
-              Width="76" Height="76" 
+              Width="60" Height="80" 
               HorizontalAlignment="Center" 
               VerticalAlignment="Center" 
               Cursor="Hand"
@@ -147,17 +147,10 @@
               PreviewMouseLeftButtonUp="MainIcon_PreviewMouseLeftButtonUp">
             
             <Grid.Effect>
-                <DropShadowEffect BlurRadius="16" ShadowDepth="3" Opacity="0.6" Color="#3B82F6"/>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.4" Color="#000000"/>
             </Grid.Effect>
 
-            <Ellipse x:Name="MainIconEllipse" Width="76" Height="76">
-                <Ellipse.Fill>
-                    <ImageBrush x:Name="IconImageBrush" Stretch="UniformToFill"/>
-                </Ellipse.Fill>
-            </Ellipse>
-
-            <!-- Glossy Border Ring -->
-            <Ellipse Width="76" Height="76" Stroke="#E2E8F0" StrokeThickness="2" IsHitTestVisible="False" Opacity="0.9"/>
+            <Image x:Name="IconImage" Width="60" Height="80" Stretch="Uniform"/>
         </Grid>
     </Grid>
 </Window>
