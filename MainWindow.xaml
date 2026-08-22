@@ -153,7 +153,7 @@
             <!-- Subtle Glassmorphism Card Backing -->
             <Border CornerRadius="16" Background="#28000000" BorderBrush="#40FFFFFF" BorderThickness="1.5"/>
 
-            <Image x:Name="IconImage" Source="icon.png" Width="64" Height="84" Stretch="Uniform" Margin="2"/>
+            <Image x:Name="IconImage" Width="64" Height="84" Stretch="Uniform" Margin="2"/>
         </Grid>
     </Grid>
 </Window>

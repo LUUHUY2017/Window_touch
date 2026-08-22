@@ -35,19 +35,33 @@ public partial class MainWindow : Window
         try
         {
             string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "icon.png");
+            if (!File.Exists(iconPath))
+            {
+                iconPath = Path.Combine(Directory.GetCurrentDirectory(), "icon.png");
+            }
+
             if (File.Exists(iconPath))
             {
-                BitmapImage bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(iconPath, UriKind.Absolute);
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
-                IconImage.Source = bitmap;
+                byte[] bytes = File.ReadAllBytes(iconPath);
+                using (MemoryStream ms = new MemoryStream(bytes))
+                {
+                    BitmapImage bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = ms;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+                    IconImage.Source = bitmap;
+                }
+            }
+            else
+            {
+                MessageBox.Show($"Không tìm thấy file icon.png tại: {iconPath}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to load icon: {ex.Message}");
+            MessageBox.Show($"Lỗi nạp ảnh: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
