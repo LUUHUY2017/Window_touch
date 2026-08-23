@@ -15,65 +15,204 @@
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
-        <!-- Premium Modern Rounded Action Button Style -->
-        <Style x:Key="MenuButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#F20F172A"/>
+        <!-- Base Button Template -->
+        <ControlTemplate x:Key="AnimatedButtonTemplate" TargetType="Button">
+            <Border x:Name="border" 
+                    Background="{TemplateBinding Background}" 
+                    BorderBrush="{TemplateBinding BorderBrush}" 
+                    BorderThickness="{TemplateBinding BorderThickness}" 
+                    CornerRadius="21"
+                    Padding="{TemplateBinding Padding}">
+                <Border.Effect>
+                    <DropShadowEffect x:Name="shadow" BlurRadius="16" ShadowDepth="4" Opacity="0.55" Color="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"/>
+                </Border.Effect>
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="border" Property="BorderThickness" Value="2"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter TargetName="border" Property="Opacity" Value="0.85"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- 📸 Screenshot Button Style (Sunset Pink-Purple Gradient) -->
+        <Style x:Key="ScreenshotButtonStyle" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="BorderThickness" Value="1.5"/>
-            <Setter Property="BorderBrush" Value="#FF38BDF8"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Padding" Value="16,0,18,0"/>
+            <Setter Property="MinWidth" Value="120"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="Padding" Value="16,0,16,0"/>
-            <Setter Property="MinWidth" Value="110"/>
-            <Setter Property="Template">
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="BorderBrush" Value="#FFF472B6"/>
+            <Setter Property="Tag" Value="#EC4899"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" 
-                                Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="20"
-                                Padding="{TemplateBinding Padding}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.6" Color="#000000"/>
-                            </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#FF1E293B"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="#FF60A5FA"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#FF0284C7"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="#FF38BDF8"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
                 </Setter.Value>
             </Setter>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FCE2E8F0" Offset="0"/>
+                        <GradientStop Color="#FCEC4899" Offset="0.3"/>
+                        <GradientStop Color="#FC8B5CF6" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template" Value="{StaticResource AnimatedButtonTemplate}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.07" Duration="0:0:0.15"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.07" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.15"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 🖥️ Desktop Button Style (Electric Emerald-Teal Gradient) -->
+        <Style x:Key="DesktopButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Padding" Value="16,0,18,0"/>
+            <Setter Property="MinWidth" Value="110"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="BorderBrush" Value="#FF34D399"/>
+            <Setter Property="Tag" Value="#10B981"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FC06B6D4" Offset="0"/>
+                        <GradientStop Color="#FC10B981" Offset="0.6"/>
+                        <GradientStop Color="#FC059669" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template" Value="{StaticResource AnimatedButtonTemplate}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.07" Duration="0:0:0.15"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.07" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.15"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 💻 Command Prompt Button Style (Cosmic Neon Indigo Gradient) -->
+        <Style x:Key="CommandPromptButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Padding" Value="16,0,18,0"/>
+            <Setter Property="MinWidth" Value="125"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="BorderBrush" Value="#FFA5B4FC"/>
+            <Setter Property="Tag" Value="#6366F1"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FC6366F1" Offset="0"/>
+                        <GradientStop Color="#FC3B82F6" Offset="0.5"/>
+                        <GradientStop Color="#FC1D4ED8" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template" Value="{StaticResource AnimatedButtonTemplate}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.07" Duration="0:0:0.15"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.07" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.15"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
     <Grid x:Name="MainGrid">
-        <!-- Central Main Icon Card (ZIndex 1) -->
+        <!-- Central Main Icon Card with Bounce RenderTransform (ZIndex 1) -->
         <Grid x:Name="MainIconGrid" 
               Width="210" Height="270" 
               HorizontalAlignment="Center" 
               VerticalAlignment="Center" 
               Panel.ZIndex="1"
               Cursor="Hand"
+              RenderTransformOrigin="0.5,1.0"
               PreviewMouseLeftButtonDown="MainIcon_PreviewMouseLeftButtonDown"
               PreviewMouseMove="MainIcon_PreviewMouseMove"
               PreviewMouseLeftButtonUp="MainIcon_PreviewMouseLeftButtonUp">
-            
+            <Grid.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="IconScaleTransform" ScaleX="1.0" ScaleY="1.0"/>
+                    <TranslateTransform x:Name="IconTranslateTransform" X="0" Y="0"/>
+                </TransformGroup>
+            </Grid.RenderTransform>
+
             <Image x:Name="IconImage" Width="210" Height="270" Stretch="Uniform"/>
             <TextBlock x:Name="FallbackText" Text="🌸" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
         </Grid>
 
-        <!-- Circular Sub-Menu Canvas (ZIndex 100 so buttons are clickable over MainIconGrid) -->
+        <!-- Circular Sub-Menu Canvas (ZIndex 100) -->
         <Canvas x:Name="MenuCanvas" Width="360" Height="360" Panel.ZIndex="100" RenderTransformOrigin="0.5,0.5" Visibility="Collapsed">
             <Canvas.RenderTransform>
                 <TransformGroup>
@@ -83,21 +222,21 @@
             </Canvas.RenderTransform>
 
             <Button x:Name="BtnScreenshot" 
-                    Canvas.Left="105" Canvas.Top="15" 
+                    Canvas.Left="100" Canvas.Top="15" 
                     Content="📸  Chụp màn hình" 
-                    Style="{StaticResource MenuButtonStyle}" 
+                    Style="{StaticResource ScreenshotButtonStyle}" 
                     Click="BtnScreenshot_Click"/>
 
             <Button x:Name="BtnDesktop" 
                     Canvas.Left="10" Canvas.Top="160" 
                     Content="🖥️  Desktop" 
-                    Style="{StaticResource MenuButtonStyle}" 
+                    Style="{StaticResource DesktopButtonStyle}" 
                     Click="BtnDesktop_Click"/>
 
             <Button x:Name="BtnCommandPrompt" 
-                    Canvas.Left="195" Canvas.Top="160" 
+                    Canvas.Left="190" Canvas.Top="160" 
                     Content="💻  Command Prompt" 
-                    Style="{StaticResource MenuButtonStyle}" 
+                    Style="{StaticResource CommandPromptButtonStyle}" 
                     Click="BtnCommandPrompt_Click"/>
         </Canvas>
 

@@ -10,6 +10,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace IDE_Touch_Window;
 
@@ -26,6 +27,9 @@ public partial class MainWindow : Window
     private byte[]? _iconPixelData;
     private int _iconPixelWidth;
     private int _iconPixelHeight;
+
+    private Storyboard? _idleAnimationStoryboard;
+    private DispatcherTimer? _idleSurpriseTimer;
 
     [DllImport("gdi32.dll")]
     private static extern bool DeleteObject(IntPtr hObject);
@@ -57,6 +61,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         LoadIconImage();
+        StartIdleAnimation();
+        SetupIdleSurpriseTimer();
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -71,6 +77,113 @@ public partial class MainWindow : Window
         // Hook WndProc for pixel-perfect transparency hit testing
         HwndSource? source = HwndSource.FromHwnd(hwnd);
         source?.AddHook(WndProc);
+    }
+
+    private void StartIdleAnimation()
+    {
+        DoubleAnimation bounceAnim = new DoubleAnimation
+        {
+            From = 0,
+            To = -8,
+            Duration = TimeSpan.FromSeconds(1.3),
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever,
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+
+        DoubleAnimation breatheScaleY = new DoubleAnimation
+        {
+            From = 1.0,
+            To = 1.025,
+            Duration = TimeSpan.FromSeconds(1.3),
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever,
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+
+        DoubleAnimation breatheScaleX = new DoubleAnimation
+        {
+            From = 1.0,
+            To = 0.98,
+            Duration = TimeSpan.FromSeconds(1.3),
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever,
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+        };
+
+        Storyboard.SetTarget(bounceAnim, IconTranslateTransform);
+        Storyboard.SetTargetProperty(bounceAnim, new PropertyPath(TranslateTransform.YProperty));
+
+        Storyboard.SetTarget(breatheScaleY, IconScaleTransform);
+        Storyboard.SetTargetProperty(breatheScaleY, new PropertyPath(ScaleTransform.ScaleYProperty));
+
+        Storyboard.SetTarget(breatheScaleX, IconScaleTransform);
+        Storyboard.SetTargetProperty(breatheScaleX, new PropertyPath(ScaleTransform.ScaleXProperty));
+
+        _idleAnimationStoryboard = new Storyboard();
+        _idleAnimationStoryboard.Children.Add(bounceAnim);
+        _idleAnimationStoryboard.Children.Add(breatheScaleY);
+        _idleAnimationStoryboard.Children.Add(breatheScaleX);
+        _idleAnimationStoryboard.Begin();
+    }
+
+    private void SetupIdleSurpriseTimer()
+    {
+        _idleSurpriseTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMinutes(1)
+        };
+        _idleSurpriseTimer.Tick += (s, e) =>
+        {
+            if (!_isMenuOpen && !_isDragging)
+            {
+                PlayIdleSurpriseJump();
+            }
+        };
+        _idleSurpriseTimer.Start();
+    }
+
+    private void PlayIdleSurpriseJump()
+    {
+        // Double hop / surprise pop jump animation when left idle
+        DoubleAnimationUsingKeyFrames jumpKeyFrames = new DoubleAnimationUsingKeyFrames();
+        
+        // Keyframe 1: First Hop
+        jumpKeyFrames.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(-24, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(180))) 
+            { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } });
+        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(320))) 
+            { EasingFunction = new BounceEase { Bounces = 1, Bounciness = 2, EasingMode = EasingMode.EaseOut } });
+        
+        // Keyframe 2: Second Hop (Cute accent)
+        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(-12, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(450))) 
+            { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } });
+        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(580))) 
+            { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn } });
+
+        // Squish & Stretch Keyframes
+        DoubleAnimationUsingKeyFrames scaleYKeyFrames = new DoubleAnimationUsingKeyFrames();
+        scaleYKeyFrames.KeyFrames.Add(new LinearDoubleKeyFrame(1.0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        scaleYKeyFrames.KeyFrames.Add(new LinearDoubleKeyFrame(1.12, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(180))));
+        scaleYKeyFrames.KeyFrames.Add(new LinearDoubleKeyFrame(0.92, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(320))));
+        scaleYKeyFrames.KeyFrames.Add(new LinearDoubleKeyFrame(1.06, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(450))));
+        scaleYKeyFrames.KeyFrames.Add(new LinearDoubleKeyFrame(1.0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(580))));
+
+        IconTranslateTransform.BeginAnimation(TranslateTransform.YProperty, jumpKeyFrames);
+        IconScaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, scaleYKeyFrames);
+    }
+
+    private void PlayClickJumpAnimation()
+    {
+        DoubleAnimation jumpAnim = new DoubleAnimation
+        {
+            From = 0,
+            To = -20,
+            Duration = TimeSpan.FromMilliseconds(180),
+            AutoReverse = true,
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+        };
+        IconTranslateTransform.BeginAnimation(TranslateTransform.YProperty, jumpAnim);
     }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -234,6 +347,7 @@ public partial class MainWindow : Window
     {
         if (!_isDragging)
         {
+            PlayClickJumpAnimation();
             ToggleMenu();
         }
         _isDragging = false;
