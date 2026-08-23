@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -24,20 +25,47 @@ public partial class MainWindow : Window
     [DllImport("gdi32.dll")]
     private static extern bool DeleteObject(IntPtr hObject);
 
+    [DllImport("user32.dll")]
+    private static extern void keybd_event(byte virtualKey, byte scanCode, uint flags, UIntPtr extraInfo);
+
+    [DllImport("user32.dll")]
+    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+    [DllImport("user32.dll")]
+    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+    private const int GWL_EXSTYLE = -20;
+    private const int WS_EX_TOOLWINDOW = 0x00000080;
+
+    private const uint KeyUpFlag = 0x0002;
+    private const byte VirtualKeyControl = 0x11;
+    private const byte VirtualKeyShift = 0x10;
+    private const byte VirtualKeyS = 0x53;
+    private const byte VirtualKeyWindows = 0x5B;
+    private const byte VirtualKeyD = 0x44;
+
     public MainWindow()
     {
         InitializeComponent();
         LoadIconImage();
     }
 
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        IntPtr hwnd = new WindowInteropHelper(this).Handle;
+        int extendedStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+        SetWindowLong(hwnd, GWL_EXSTYLE, extendedStyle | WS_EX_TOOLWINDOW);
+    }
+
     private void LoadIconImage()
     {
         try
         {
-            string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "icon.png");
+            string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "icon-transparent.png");
             if (!File.Exists(iconPath))
             {
-                iconPath = Path.Combine(Directory.GetCurrentDirectory(), "icon.png");
+                iconPath = Path.Combine(Directory.GetCurrentDirectory(), "icon-transparent.png");
             }
 
             if (File.Exists(iconPath))
@@ -176,85 +204,74 @@ public partial class MainWindow : Window
     {
         CloseMenu();
 
-        // Ẩn cửa sổ tạm thời để không chụp phải chính nút nổi
-        this.Opacity = 0;
-        await Task.Delay(250);
+        // 1. Hide the window so it doesn't appear in the screenshot
+        this.Hide();
 
+        // 2. Wait for DWM render loop to clear the window from desktop surface
+        await Task.Delay(300);
+
+        // 3. Trigger Windows Screenshot tool
         try
         {
-            int screenWidth = (int)SystemParameters.PrimaryScreenWidth;
-            int screenHeight = (int)SystemParameters.PrimaryScreenHeight;
-
-            using (var bitmap = new System.Drawing.Bitmap(screenWidth, screenHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
-            {
-                using (var g = System.Drawing.Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(0, 0, 0, 0, new System.Drawing.Size(screenWidth, screenHeight), System.Drawing.CopyPixelOperation.SourceCopy);
-                }
-
-                // Lưu ảnh vào Pictures/Screenshots
-                string picturesPath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-                string screenshotsFolder = Path.Combine(picturesPath, "Screenshots");
-                if (!Directory.Exists(screenshotsFolder))
-                {
-                    Directory.CreateDirectory(screenshotsFolder);
-                }
-
-                string fileName = $"Screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
-                string fullPath = Path.Combine(screenshotsFolder, fileName);
-                bitmap.Save(fullPath, System.Drawing.Imaging.ImageFormat.Png);
-
-                // Sao chép ảnh vào Clipboard
-                IntPtr hBitmap = bitmap.GetHbitmap();
-                try
-                {
-                    BitmapSource wpfBitmap = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                        hBitmap,
-                        IntPtr.Zero,
-                        Int32Rect.Empty,
-                        BitmapSizeOptions.FromEmptyOptions());
-                    Clipboard.SetImage(wpfBitmap);
-                }
-                finally
-                {
-                    DeleteObject(hBitmap);
-                }
-            }
-
-            ShowToast($"📷 Đã lưu: {DateTime.Now:HH:mm:ss}");
+            Process.Start(new ProcessStartInfo("ms-screenclip:") { UseShellExecute = true });
         }
-        catch (Exception ex)
+        catch
         {
-            ShowToast($"❌ Lỗi: {ex.Message}");
+            SendHotkey(VirtualKeyWindows, VirtualKeyShift, VirtualKeyS);
         }
-        finally
-        {
-            this.Opacity = 1;
-        }
+
+        // 4. Wait for Snipping Tool overlay to initialize before re-showing floating window
+        await Task.Delay(2000);
+        this.Show();
+        this.Topmost = true;
+        ShowToast("📸 Đã mở công cụ chụp màn hình!");
     }
 
-    private void BtnDesktop_Click(object sender, RoutedEventArgs e)
+    private async void BtnDesktop_Click(object sender, RoutedEventArgs e)
+    {
+        CloseMenu();
+
+        // Send Win + D to minimize all windows
+        SendHotkey(VirtualKeyWindows, VirtualKeyD);
+
+        // Wait brief delay then bring our floating widget back on top of Desktop
+        await Task.Delay(200);
+        this.WindowState = WindowState.Normal;
+        this.Topmost = true;
+        this.Activate();
+
+        ShowToast("🖥️ Hiển thị Desktop!");
+    }
+
+    private void BtnCommandPrompt_Click(object sender, RoutedEventArgs e)
     {
         CloseMenu();
         try
         {
-            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             Process.Start(new ProcessStartInfo
             {
-                FileName = "explorer.exe",
-                Arguments = desktopPath,
+                FileName = "cmd.exe",
                 UseShellExecute = true
             });
+            ShowToast("💻 Đã mở Command Prompt!");
         }
         catch (Exception ex)
         {
-            ShowToast($"❌ Lỗi: {ex.Message}");
+            MessageBox.Show($"Lỗi mở CMD: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
-    private void BtnExit_Click(object sender, RoutedEventArgs e)
+    private static void SendHotkey(params byte[] keys)
     {
-        Application.Current.Shutdown();
+        foreach (byte key in keys)
+        {
+            keybd_event(key, 0, 0, UIntPtr.Zero);
+        }
+
+        for (int index = keys.Length - 1; index >= 0; index--)
+        {
+            keybd_event(keys[index], 0, KeyUpFlag, UIntPtr.Zero);
+        }
     }
 
     private void ShowToast(string message)
@@ -278,4 +295,4 @@ public partial class MainWindow : Window
     }
 
     #endregion
-}
+}

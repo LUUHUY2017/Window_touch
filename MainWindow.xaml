@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:IDE_Touch_Window"
         mc:Ignorable="d"
         Title="FloatingIcon" 
-        Height="260" Width="260"
+        Height="380" Width="380"
         Topmost="True"
         AllowsTransparency="True" 
         WindowStyle="None" 
@@ -15,17 +15,18 @@
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
-        <!-- Modern Rounded Action Button Style -->
+        <!-- Premium Modern Rounded Action Button Style -->
         <Style x:Key="MenuButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#EE1E293B"/>
+            <Setter Property="Background" Value="#F20F172A"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="BorderThickness" Value="1.5"/>
             <Setter Property="BorderBrush" Value="#FF38BDF8"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="Width" Value="84"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Padding" Value="16,0,16,0"/>
+            <Setter Property="MinWidth" Value="110"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -33,50 +34,21 @@
                                 Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="18">
+                                CornerRadius="20"
+                                Padding="{TemplateBinding Padding}">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.5" Color="#000000"/>
+                                <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.6" Color="#000000"/>
                             </Border.Effect>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#FF334155"/>
+                                <Setter TargetName="border" Property="Background" Value="#FF1E293B"/>
                                 <Setter TargetName="border" Property="BorderBrush" Value="#FF60A5FA"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#FF0F172A"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="#FF3B82F6"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="ExitButtonStyle" TargetType="Button" BasedOn="{StaticResource MenuButtonStyle}">
-            <Setter Property="Background" Value="#EE7F1D1D"/>
-            <Setter Property="BorderBrush" Value="#FFF87171"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" 
-                                Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="18">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.5" Color="#000000"/>
-                            </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#DC2626"/>
-                                <Setter TargetName="border" Property="BorderBrush" Value="#FCA5A5"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#991B1B"/>
+                                <Setter TargetName="border" Property="Background" Value="#FF0284C7"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#FF38BDF8"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -86,8 +58,23 @@
     </Window.Resources>
 
     <Grid x:Name="MainGrid">
-        <!-- Circular Sub-Menu Canvas -->
-        <Canvas x:Name="MenuCanvas" Width="260" Height="260" RenderTransformOrigin="0.5,0.5" Visibility="Collapsed">
+        <!-- Central Main Icon Card (ZIndex 1) -->
+        <Grid x:Name="MainIconGrid" 
+              Width="210" Height="270" 
+              HorizontalAlignment="Center" 
+              VerticalAlignment="Center" 
+              Panel.ZIndex="1"
+              Cursor="Hand"
+              PreviewMouseLeftButtonDown="MainIcon_PreviewMouseLeftButtonDown"
+              PreviewMouseMove="MainIcon_PreviewMouseMove"
+              PreviewMouseLeftButtonUp="MainIcon_PreviewMouseLeftButtonUp">
+            
+            <Image x:Name="IconImage" Width="210" Height="270" Stretch="Uniform"/>
+            <TextBlock x:Name="FallbackText" Text="🌸" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+        </Grid>
+
+        <!-- Circular Sub-Menu Canvas (ZIndex 100 so buttons are clickable over MainIconGrid) -->
+        <Canvas x:Name="MenuCanvas" Width="360" Height="360" Panel.ZIndex="100" RenderTransformOrigin="0.5,0.5" Visibility="Collapsed">
             <Canvas.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform x:Name="MenuScale" ScaleX="0.2" ScaleY="0.2"/>
@@ -96,65 +83,46 @@
             </Canvas.RenderTransform>
 
             <Button x:Name="BtnScreenshot" 
-                    Canvas.Left="88" Canvas.Top="18" 
-                    Content="📷 Chụp" 
+                    Canvas.Left="105" Canvas.Top="15" 
+                    Content="📸  Chụp màn hình" 
                     Style="{StaticResource MenuButtonStyle}" 
                     Click="BtnScreenshot_Click"/>
 
             <Button x:Name="BtnDesktop" 
-                    Canvas.Left="12" Canvas.Top="112" 
-                    Content="💻 Desktop" 
+                    Canvas.Left="10" Canvas.Top="160" 
+                    Content="🖥️  Desktop" 
                     Style="{StaticResource MenuButtonStyle}" 
                     Click="BtnDesktop_Click"/>
 
-            <Button x:Name="BtnExit" 
-                    Canvas.Left="164" Canvas.Top="112" 
-                    Content="❌ Thoát" 
-                    Style="{StaticResource ExitButtonStyle}" 
-                    Click="BtnExit_Click"/>
+            <Button x:Name="BtnCommandPrompt" 
+                    Canvas.Left="195" Canvas.Top="160" 
+                    Content="💻  Command Prompt" 
+                    Style="{StaticResource MenuButtonStyle}" 
+                    Click="BtnCommandPrompt_Click"/>
         </Canvas>
 
-        <!-- Notification Toast Banner -->
+        <!-- Notification Toast Banner (ZIndex 200) -->
         <Border x:Name="ToastNotification" 
-                Width="200" Height="32" 
-                Background="#EE10B981" 
-                CornerRadius="16" 
+                Panel.ZIndex="200"
+                Height="36" 
+                Background="#F0059669" 
+                CornerRadius="18" 
+                Padding="16,0,16,0"
                 VerticalAlignment="Top" 
                 HorizontalAlignment="Center" 
-                Margin="0,5,0,0" 
+                Margin="0,12,0,0" 
                 Visibility="Collapsed" 
                 Opacity="0">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.3" Color="#000000"/>
+                <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.4" Color="#000000"/>
             </Border.Effect>
             <TextBlock x:Name="ToastText" 
-                       Text="📷 Đã chụp &amp; lưu ảnh!" 
+                       Text="✨ Thông báo" 
                        Foreground="White" 
                        FontWeight="Bold" 
-                       FontSize="11" 
+                       FontSize="12" 
                        HorizontalAlignment="Center" 
                        VerticalAlignment="Center"/>
         </Border>
-
-        <!-- Central Main Icon Card -->
-        <Grid x:Name="MainIconGrid" 
-              Width="70" Height="90" 
-              HorizontalAlignment="Center" 
-              VerticalAlignment="Center" 
-              Cursor="Hand"
-              PreviewMouseLeftButtonDown="MainIcon_PreviewMouseLeftButtonDown"
-              PreviewMouseMove="MainIcon_PreviewMouseMove"
-              PreviewMouseLeftButtonUp="MainIcon_PreviewMouseLeftButtonUp">
-            
-            <Grid.Effect>
-                <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.6" Color="#000000"/>
-            </Grid.Effect>
-
-            <!-- Visible Card Container with Cyan Border -->
-            <Border CornerRadius="18" Background="#EE1E293B" BorderBrush="#FF38BDF8" BorderThickness="2"/>
-
-            <Image x:Name="IconImage" Width="64" Height="84" Stretch="Uniform" Margin="2"/>
-            <TextBlock x:Name="FallbackText" Text="🌸" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
-        </Grid>
     </Grid>
 </Window>
