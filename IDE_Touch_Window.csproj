@@ -9,11 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="icon.png" />
     <Resource Include="icon-transparent.png" />
-    <None Update="icon.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="icon-transparent.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
