@@ -22,6 +22,11 @@ public partial class MainWindow : Window
     private bool _isDragging = false;
     private bool _isMenuOpen = false;
 
+    // Raw pixel data for pixel-perfect alpha hit testing
+    private byte[]? _iconPixelData;
+    private int _iconPixelWidth;
+    private int _iconPixelHeight;
+
     [DllImport("gdi32.dll")]
     private static extern bool DeleteObject(IntPtr hObject);
 
@@ -36,6 +41,10 @@ public partial class MainWindow : Window
 
     private const int GWL_EXSTYLE = -20;
     private const int WS_EX_TOOLWINDOW = 0x00000080;
+
+    private const int WM_NCHITTEST = 0x0084;
+    private static readonly IntPtr HTTRANSPARENT = (IntPtr)(-1);
+    private static readonly IntPtr HTCLIENT = (IntPtr)1;
 
     private const uint KeyUpFlag = 0x0002;
     private const byte VirtualKeyControl = 0x11;
@@ -54,8 +63,57 @@ public partial class MainWindow : Window
     {
         base.OnSourceInitialized(e);
         IntPtr hwnd = new WindowInteropHelper(this).Handle;
+
+        // Apply WS_EX_TOOLWINDOW extended style
         int extendedStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
         SetWindowLong(hwnd, GWL_EXSTYLE, extendedStyle | WS_EX_TOOLWINDOW);
+
+        // Hook WndProc for pixel-perfect transparency hit testing
+        HwndSource? source = HwndSource.FromHwnd(hwnd);
+        source?.AddHook(WndProc);
+    }
+
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (msg == WM_NCHITTEST)
+        {
+            int x = (short)(lParam.ToInt32() & 0xFFFF);
+            int y = (short)((lParam.ToInt32() >> 16) & 0xFFFF);
+            Point screenPt = new Point(x, y);
+            Point windowPt = PointFromScreen(screenPt);
+
+            // 1. If sub-menu is open, check if mouse is over any active Menu button or Toast
+            if (_isMenuOpen)
+            {
+                HitTestResult hitResult = VisualTreeHelper.HitTest(MainGrid, windowPt);
+                if (hitResult != null && hitResult.VisualHit != null)
+                {
+                    DependencyObject? dObj = hitResult.VisualHit;
+                    while (dObj != null && dObj != MainGrid)
+                    {
+                        if (dObj is Button || dObj == ToastNotification)
+                        {
+                            handled = true;
+                            return HTCLIENT;
+                        }
+                        dObj = VisualTreeHelper.GetParent(dObj);
+                    }
+                }
+            }
+
+            // 2. Check if mouse is over an opaque pixel of the anime girl PNG
+            if (IsPixelOpaqueAtWindowPoint(windowPt))
+            {
+                handled = true;
+                return HTCLIENT;
+            }
+
+            // 3. Transparent area -> Return HTTRANSPARENT to pass click straight through to Desktop / Window beneath!
+            handled = true;
+            return HTTRANSPARENT;
+        }
+
+        return IntPtr.Zero;
     }
 
     private void LoadIconImage()
@@ -80,6 +138,19 @@ public partial class MainWindow : Window
                     bitmap.EndInit();
                     bitmap.Freeze();
                     IconImage.Source = bitmap;
+
+                    // Extract raw pixel data for alpha hit testing
+                    FormatConvertedBitmap bgraBitmap = new FormatConvertedBitmap();
+                    bgraBitmap.BeginInit();
+                    bgraBitmap.Source = bitmap;
+                    bgraBitmap.DestinationFormat = PixelFormats.Bgra32;
+                    bgraBitmap.EndInit();
+
+                    _iconPixelWidth = bgraBitmap.PixelWidth;
+                    _iconPixelHeight = bgraBitmap.PixelHeight;
+                    int stride = _iconPixelWidth * 4;
+                    _iconPixelData = new byte[_iconPixelHeight * stride];
+                    bgraBitmap.CopyPixels(_iconPixelData, stride, 0);
                 }
                 FallbackText.Visibility = Visibility.Collapsed;
             }
@@ -92,6 +163,47 @@ public partial class MainWindow : Window
         {
             MessageBox.Show($"Lỗi nạp ảnh: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private bool IsPixelOpaqueAtWindowPoint(Point windowPt)
+    {
+        if (_iconPixelData == null || _iconPixelWidth == 0 || _iconPixelHeight == 0)
+            return false;
+
+        Point imgPt;
+        try
+        {
+            imgPt = this.TranslatePoint(windowPt, IconImage);
+        }
+        catch
+        {
+            return false;
+        }
+
+        double actualWidth = IconImage.ActualWidth;
+        double actualHeight = IconImage.ActualHeight;
+
+        if (actualWidth <= 0 || actualHeight <= 0)
+            return false;
+
+        if (imgPt.X < 0 || imgPt.X >= actualWidth || imgPt.Y < 0 || imgPt.Y >= actualHeight)
+            return false;
+
+        int pixelX = (int)(imgPt.X * _iconPixelWidth / actualWidth);
+        int pixelY = (int)(imgPt.Y * _iconPixelHeight / actualHeight);
+
+        pixelX = Math.Clamp(pixelX, 0, _iconPixelWidth - 1);
+        pixelY = Math.Clamp(pixelY, 0, _iconPixelHeight - 1);
+
+        int stride = _iconPixelWidth * 4;
+        int alphaIndex = pixelY * stride + pixelX * 4 + 3;
+
+        if (alphaIndex >= 0 && alphaIndex < _iconPixelData.Length)
+        {
+            return _iconPixelData[alphaIndex] > 30; // Alpha threshold for non-transparent pixels
+        }
+
+        return false;
     }
 
     #region Mouse Drag & Click Disambiguation

@@ -10,8 +10,8 @@
         Topmost="True"
         AllowsTransparency="True" 
         WindowStyle="None" 
-        Background="#01000000"
-        ShowInTaskbar="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
