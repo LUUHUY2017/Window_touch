@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,6 +34,11 @@ public partial class MainWindow : Window
 
     private Storyboard? _idleAnimationStoryboard;
     private DispatcherTimer? _idleSurpriseTimer;
+
+    private readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+    private string? _cachedWeatherMsg;
+    private int _msgIndex = 0;
+    private CancellationTokenSource? _typewriterCts;
 
     [DllImport("gdi32.dll")]
     private static extern bool DeleteObject(IntPtr hObject);
@@ -63,6 +72,16 @@ public partial class MainWindow : Window
         LoadIconImage();
         StartIdleAnimation();
         SetupIdleSurpriseTimer();
+        _ = FetchWeatherAsync();
+
+        // Trigger welcome chat bubble 2 seconds after launch so user sees typewriter effect immediately!
+        Task.Delay(2000).ContinueWith(_ =>
+        {
+            Dispatcher.Invoke(() =>
+            {
+                ShowChatBubble("🌸 Xin chào Anh Huy, Anh còn ở đó không?");
+            });
+        });
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -77,6 +96,38 @@ public partial class MainWindow : Window
         // Hook WndProc for pixel-perfect transparency hit testing
         HwndSource? source = HwndSource.FromHwnd(hwnd);
         source?.AddHook(WndProc);
+    }
+
+    private async Task FetchWeatherAsync()
+    {
+        try
+        {
+            // Hanoi coordinates: 21.0285, 105.8542
+            string url = "https://api.open-meteo.com/v1/forecast?latitude=21.0285&longitude=105.8542&current_weather=true";
+            string json = await _httpClient.GetStringAsync(url);
+            
+            using JsonDocument doc = JsonDocument.Parse(json);
+            JsonElement current = doc.RootElement.GetProperty("current_weather");
+            double temp = current.GetProperty("temperature").GetDouble();
+            int code = current.GetProperty("weathercode").GetInt32();
+            
+            string weatherDesc = code switch
+            {
+                0 => "Trời quang đãng ☀️",
+                1 or 2 => "Trời ít mây 🌤️",
+                3 => "Trời nhiều mây ⛅",
+                45 or 48 => "Có sương mù 🌫️",
+                51 or 53 or 61 or 63 or 80 => "Có mưa rào 🌧️",
+                95 or 96 => "Trời dông 🌩️",
+                _ => "Thời tiết dịu mát 🍃"
+            };
+
+            _cachedWeatherMsg = $"🌤️ Thời tiết Hà Nội: {temp:F1}°C, {weatherDesc}";
+        }
+        catch
+        {
+            _cachedWeatherMsg = null;
+        }
     }
 
     private void StartIdleAnimation()
@@ -138,9 +189,95 @@ public partial class MainWindow : Window
             if (!_isMenuOpen && !_isDragging)
             {
                 PlayIdleSurpriseJump();
+                ShowChatBubble(GetNextIdleMessage());
             }
         };
         _idleSurpriseTimer.Start();
+    }
+
+    private string GetNextIdleMessage()
+    {
+        List<string> messages = new List<string>
+        {
+            "🌸 Xin chào Anh Huy, Anh còn ở đó không?",
+            "☕ Anh Huy ơi, làm việc nhớ nghỉ tay uống chút nước nhé!",
+            "💡 Mẹo mắt: Hãy nhìn ra xa 20 feet trong 20 giây để thư giãn mắt nha!",
+            "🚗 Giao thông: Đường xá hôm nay khá thông thoáng, chúc anh di chuyển an toàn!",
+            "💻 Code Tip: Commit code thường xuyên để giữ tiến độ thật tốt nhé anh Huy!",
+            "✨ Chúc Anh Huy một ngày làm việc tràn đầy năng lượng và sáng tạo!"
+        };
+
+        if (!string.IsNullOrEmpty(_cachedWeatherMsg))
+        {
+            messages.Insert(1, _cachedWeatherMsg);
+        }
+
+        string msg = messages[_msgIndex % messages.Count];
+        _msgIndex++;
+        return msg;
+    }
+
+    private async void ShowChatBubble(string message)
+    {
+        _typewriterCts?.Cancel();
+        _typewriterCts = new CancellationTokenSource();
+        var token = _typewriterCts.Token;
+
+        ChatText.Text = "";
+        ChatBubble.Visibility = Visibility.Visible;
+
+        DoubleAnimation scaleAnim = new DoubleAnimation(0.3, 1.0, TimeSpan.FromMilliseconds(250))
+        {
+            EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.5 }
+        };
+        DoubleAnimation fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200));
+
+        ChatBubbleScale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
+        ChatBubbleScale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
+        ChatBubble.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+
+        try
+        {
+            // Typewriter effect: type out character by character
+            for (int i = 1; i <= message.Length; i++)
+            {
+                if (token.IsCancellationRequested) return;
+                ChatText.Text = message.Substring(0, i);
+                await Task.Delay(35, token);
+            }
+
+            // Wait 10 seconds after full text is typed so user can read comfortably
+            await Task.Delay(10000, token);
+
+            if (token.IsCancellationRequested) return;
+
+            // Smooth fade out
+            DoubleAnimation fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(400));
+            fadeOut.Completed += (s, e) =>
+            {
+                if (!token.IsCancellationRequested)
+                {
+                    ChatBubble.Visibility = Visibility.Collapsed;
+                }
+            };
+            ChatBubble.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+        }
+        catch (TaskCanceledException)
+        {
+            // Dismissed by click or overridden by new message
+        }
+    }
+
+    private void ChatBubble_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _typewriterCts?.Cancel();
+
+        DoubleAnimation fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(150));
+        fadeOut.Completed += (s, e) =>
+        {
+            ChatBubble.Visibility = Visibility.Collapsed;
+        };
+        ChatBubble.BeginAnimation(UIElement.OpacityProperty, fadeOut);
     }
 
     private void PlayIdleSurpriseJump()
@@ -195,22 +332,19 @@ public partial class MainWindow : Window
             Point screenPt = new Point(x, y);
             Point windowPt = PointFromScreen(screenPt);
 
-            // 1. If sub-menu is open, check if mouse is over any active Menu button or Toast
-            if (_isMenuOpen)
+            // 1. If sub-menu is open or ChatBubble/Toast is visible, check if mouse is over them
+            HitTestResult hitResult = VisualTreeHelper.HitTest(MainGrid, windowPt);
+            if (hitResult != null && hitResult.VisualHit != null)
             {
-                HitTestResult hitResult = VisualTreeHelper.HitTest(MainGrid, windowPt);
-                if (hitResult != null && hitResult.VisualHit != null)
+                DependencyObject? dObj = hitResult.VisualHit;
+                while (dObj != null && dObj != MainGrid)
                 {
-                    DependencyObject? dObj = hitResult.VisualHit;
-                    while (dObj != null && dObj != MainGrid)
+                    if (dObj is Button || dObj == ToastNotification || dObj == ChatBubble)
                     {
-                        if (dObj is Button || dObj == ToastNotification)
-                        {
-                            handled = true;
-                            return HTCLIENT;
-                        }
-                        dObj = VisualTreeHelper.GetParent(dObj);
+                        handled = true;
+                        return HTCLIENT;
                     }
+                    dObj = VisualTreeHelper.GetParent(dObj);
                 }
             }
 

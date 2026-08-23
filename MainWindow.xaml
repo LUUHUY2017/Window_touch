@@ -263,5 +263,40 @@
                        HorizontalAlignment="Center" 
                        VerticalAlignment="Center"/>
         </Border>
+
+        <!-- Manga / Anime Style Speech Bubble (Chat Bubble) (ZIndex 150) -->
+        <Border x:Name="ChatBubble" 
+                Panel.ZIndex="150"
+                MaxWidth="260" 
+                Background="#F20F172A" 
+                BorderBrush="#FF38BDF8" 
+                BorderThickness="1.5"
+                CornerRadius="16" 
+                Padding="16,12,16,12" 
+                VerticalAlignment="Top" 
+                HorizontalAlignment="Center" 
+                Margin="0,15,0,0" 
+                Visibility="Collapsed" 
+                Opacity="0"
+                Cursor="Hand"
+                MouseLeftButtonDown="ChatBubble_MouseLeftButtonDown"
+                RenderTransformOrigin="0.5,1.0">
+            <Border.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="ChatBubbleScale" ScaleX="0.3" ScaleY="0.3"/>
+                </TransformGroup>
+            </Border.RenderTransform>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.6" Color="#38BDF8"/>
+            </Border.Effect>
+
+            <TextBlock x:Name="ChatText" 
+                       Text="" 
+                       Foreground="White" 
+                       FontWeight="SemiBold" 
+                       FontSize="13" 
+                       TextWrapping="Wrap" 
+                       LineHeight="19"/>
+        </Border>
     </Grid>
 </Window>
