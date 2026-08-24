@@ -14,6 +14,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Windows.Resources;
 using System.Windows.Threading;
 
 namespace IDE_Touch_Window;
@@ -367,38 +368,25 @@ public partial class MainWindow : Window
     {
         try
         {
-            string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "icon-transparent.png");
-            if (!File.Exists(iconPath))
+            BitmapImage? bitmap = LoadIconBitmap();
+
+            if (bitmap != null)
             {
-                iconPath = Path.Combine(Directory.GetCurrentDirectory(), "icon-transparent.png");
-            }
+                IconImage.Source = bitmap;
 
-            if (File.Exists(iconPath))
-            {
-                byte[] bytes = File.ReadAllBytes(iconPath);
-                using (MemoryStream ms = new MemoryStream(bytes))
-                {
-                    BitmapImage bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.StreamSource = ms;
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.EndInit();
-                    bitmap.Freeze();
-                    IconImage.Source = bitmap;
+                // Extract raw pixel data for alpha hit testing
+                FormatConvertedBitmap bgraBitmap = new FormatConvertedBitmap();
+                bgraBitmap.BeginInit();
+                bgraBitmap.Source = bitmap;
+                bgraBitmap.DestinationFormat = PixelFormats.Bgra32;
+                bgraBitmap.EndInit();
 
-                    // Extract raw pixel data for alpha hit testing
-                    FormatConvertedBitmap bgraBitmap = new FormatConvertedBitmap();
-                    bgraBitmap.BeginInit();
-                    bgraBitmap.Source = bitmap;
-                    bgraBitmap.DestinationFormat = PixelFormats.Bgra32;
-                    bgraBitmap.EndInit();
+                _iconPixelWidth = bgraBitmap.PixelWidth;
+                _iconPixelHeight = bgraBitmap.PixelHeight;
+                int stride = _iconPixelWidth * 4;
+                _iconPixelData = new byte[_iconPixelHeight * stride];
+                bgraBitmap.CopyPixels(_iconPixelData, stride, 0);
 
-                    _iconPixelWidth = bgraBitmap.PixelWidth;
-                    _iconPixelHeight = bgraBitmap.PixelHeight;
-                    int stride = _iconPixelWidth * 4;
-                    _iconPixelData = new byte[_iconPixelHeight * stride];
-                    bgraBitmap.CopyPixels(_iconPixelData, stride, 0);
-                }
                 FallbackText.Visibility = Visibility.Collapsed;
             }
             else
@@ -410,6 +398,52 @@ public partial class MainWindow : Window
         {
             MessageBox.Show($"Lỗi nạp ảnh: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    /// <summary>
+    /// Ưu tiên file PNG cạnh exe (dễ thay ảnh nhân vật), nếu không có thì lấy bản
+    /// nhúng trong assembly — bản publish single-file chỉ có đúng một file exe.
+    /// </summary>
+    private static BitmapImage? LoadIconBitmap()
+    {
+        string[] candidates =
+        {
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "icon-transparent.png"),
+            Path.Combine(Directory.GetCurrentDirectory(), "icon-transparent.png")
+        };
+
+        foreach (string path in candidates)
+        {
+            if (!File.Exists(path))
+            {
+                continue;
+            }
+
+            using MemoryStream ms = new MemoryStream(File.ReadAllBytes(path));
+            return CreateFrozenBitmap(ms);
+        }
+
+        StreamResourceInfo? resource = Application.GetResourceStream(
+            new Uri("pack://application:,,,/icon-transparent.png"));
+
+        if (resource == null)
+        {
+            return null;
+        }
+
+        using Stream stream = resource.Stream;
+        return CreateFrozenBitmap(stream);
+    }
+
+    private static BitmapImage CreateFrozenBitmap(Stream stream)
+    {
+        BitmapImage bitmap = new BitmapImage();
+        bitmap.BeginInit();
+        bitmap.StreamSource = stream;
+        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+        bitmap.EndInit();
+        bitmap.Freeze();
+        return bitmap;
     }
 
     private bool IsPixelOpaqueAtWindowPoint(Point windowPt)

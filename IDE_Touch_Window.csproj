@@ -6,14 +6,30 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- Chỉ dùng cho NotifyIcon / ContextMenuStrip của khay hệ thống -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <AssemblyTitle>IDE Touch Window</AssemblyTitle>
+    <Product>IDE Touch Window</Product>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- UseWindowsForms tự thêm implicit using System.Windows.Forms / System.Drawing,
+         gây trùng tên với WPF (MessageBox, Point, Button, Application...).
+         Gỡ bỏ và using tường minh trong TrayIcon.cs. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Nhúng vào assembly để bản publish single-file chạy được mà không cần file rời -->
     <Resource Include="icon-transparent.png" />
+    <Resource Include="app.ico" />
     <None Update="icon-transparent.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
-    <PackageReference Include="System.Drawing.Common" Version="10.0.11" />
   </ItemGroup>
 
 </Project>
