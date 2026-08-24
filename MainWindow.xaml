@@ -12,7 +12,7 @@
         WindowStyle="None" 
         Background="Transparent"
         ShowInTaskbar="False"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="Manual">
 
     <Window.Resources>
         <!-- Base Button Template -->

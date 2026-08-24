@@ -13,13 +13,13 @@ namespace IDE_Touch_Window;
 /// </summary>
 internal sealed class TrayIcon : IDisposable
 {
-    private readonly Window _target;
+    private readonly MainWindow _target;
     private readonly WinForms.NotifyIcon _notifyIcon;
     private readonly WinForms.ToolStripMenuItem _visibilityItem;
     private readonly WinForms.ToolStripMenuItem _startupItem;
     private bool _disposed;
 
-    public TrayIcon(Window target)
+    public TrayIcon(MainWindow target)
     {
         _target = target;
 
@@ -31,6 +31,7 @@ internal sealed class TrayIcon : IDisposable
 
         WinForms.ContextMenuStrip menu = new();
         menu.Items.Add(_visibilityItem);
+        menu.Items.Add(new WinForms.ToolStripMenuItem("Đưa về giữa màn hình chính", null, (_, _) => RecenterTarget()));
         menu.Items.Add(new WinForms.ToolStripSeparator());
         menu.Items.Add(_startupItem);
         menu.Items.Add(new WinForms.ToolStripSeparator());
@@ -85,6 +86,12 @@ internal sealed class TrayIcon : IDisposable
             _target.Topmost = true;
             _visibilityItem.Text = "Ẩn nhân vật";
         }
+    }
+
+    private void RecenterTarget()
+    {
+        _target.CenterOnPrimaryScreen();
+        _visibilityItem.Text = "Ẩn nhân vật";
     }
 
     private void ToggleStartup()

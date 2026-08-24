@@ -70,6 +70,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        RestorePosition();
         LoadIconImage();
         StartIdleAnimation();
         SetupIdleSurpriseTimer();
@@ -80,10 +81,62 @@ public partial class MainWindow : Window
         {
             Dispatcher.Invoke(() =>
             {
-                ShowChatBubble("🌸 Xin chào Anh Huy, Anh còn ở đó không?");
+                ShowChatBubble("🌸 Xin chào! Anh còn ở đó không?");
             });
         });
     }
+
+    #region Window Position
+
+    /// <summary>
+    /// Khôi phục vị trí đã lưu. Nếu vị trí đó không còn nằm trên màn hình nào
+    /// (rút cáp màn hình phụ, đổi độ phân giải) thì đưa về giữa màn hình chính.
+    /// </summary>
+    private void RestorePosition()
+    {
+        if (WindowPositionStore.TryLoad(out double left, out double top) && IsOnAnyScreen(left, top))
+        {
+            Left = left;
+            Top = top;
+            return;
+        }
+
+        CenterOnPrimaryScreen();
+    }
+
+    private bool IsOnAnyScreen(double left, double top)
+    {
+        double centerX = left + Width / 2;
+        double centerY = top + Height / 2;
+
+        double virtualLeft = SystemParameters.VirtualScreenLeft;
+        double virtualTop = SystemParameters.VirtualScreenTop;
+
+        return centerX >= virtualLeft
+            && centerX <= virtualLeft + SystemParameters.VirtualScreenWidth
+            && centerY >= virtualTop
+            && centerY <= virtualTop + SystemParameters.VirtualScreenHeight;
+    }
+
+    /// <summary>
+    /// Lối thoát khi không tìm thấy nhân vật (nằm ngoài màn hình hoặc trên màn hình phụ
+    /// đã tháo). Gọi từ menu chuột phải của icon khay hệ thống.
+    /// </summary>
+    public void CenterOnPrimaryScreen()
+    {
+        Left = (SystemParameters.PrimaryScreenWidth - Width) / 2;
+        Top = (SystemParameters.PrimaryScreenHeight - Height) / 2;
+
+        if (!IsVisible)
+        {
+            Show();
+        }
+
+        Topmost = true;
+        WindowPositionStore.Save(Left, Top);
+    }
+
+    #endregion
 
     protected override void OnSourceInitialized(EventArgs e)
     {
@@ -106,12 +159,12 @@ public partial class MainWindow : Window
             // Hanoi coordinates: 21.0285, 105.8542
             string url = "https://api.open-meteo.com/v1/forecast?latitude=21.0285&longitude=105.8542&current_weather=true";
             string json = await _httpClient.GetStringAsync(url);
-            
+
             using JsonDocument doc = JsonDocument.Parse(json);
             JsonElement current = doc.RootElement.GetProperty("current_weather");
             double temp = current.GetProperty("temperature").GetDouble();
             int code = current.GetProperty("weathercode").GetInt32();
-            
+
             string weatherDesc = code switch
             {
                 0 => "Trời quang đãng ☀️",
@@ -285,19 +338,19 @@ public partial class MainWindow : Window
     {
         // Double hop / surprise pop jump animation when left idle
         DoubleAnimationUsingKeyFrames jumpKeyFrames = new DoubleAnimationUsingKeyFrames();
-        
+
         // Keyframe 1: First Hop
         jumpKeyFrames.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
-        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(-24, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(180))) 
-            { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } });
-        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(320))) 
-            { EasingFunction = new BounceEase { Bounces = 1, Bounciness = 2, EasingMode = EasingMode.EaseOut } });
-        
+        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(-24, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(180)))
+        { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } });
+        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(320)))
+        { EasingFunction = new BounceEase { Bounces = 1, Bounciness = 2, EasingMode = EasingMode.EaseOut } });
+
         // Keyframe 2: Second Hop (Cute accent)
-        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(-12, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(450))) 
-            { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } });
-        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(580))) 
-            { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn } });
+        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(-12, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(450)))
+        { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut } });
+        jumpKeyFrames.KeyFrames.Add(new EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(580)))
+        { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn } });
 
         // Squish & Stretch Keyframes
         DoubleAnimationUsingKeyFrames scaleYKeyFrames = new DoubleAnimationUsingKeyFrames();
@@ -518,10 +571,20 @@ public partial class MainWindow : Window
             PlayClickJumpAnimation();
             ToggleMenu();
         }
+        else
+        {
+            WindowPositionStore.Save(Left, Top);
+        }
         _isDragging = false;
     }
 
     #endregion
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        WindowPositionStore.Save(Left, Top);
+        base.OnClosing(e);
+    }
 
     #region Radial Menu Animations
 
@@ -531,7 +594,7 @@ public partial class MainWindow : Window
         {
             // Open Menu Animation
             MenuCanvas.Visibility = Visibility.Visible;
-            
+
             DoubleAnimation scaleAnimation = new DoubleAnimation
             {
                 From = 0.2,
