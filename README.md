@@ -42,18 +42,27 @@ dotnet run
 ## Đóng gói
 
 ```powershell
-.\publish.ps1            # 1 file exe self-contained (~67 MB), không cần cài .NET Runtime
+.\publish.ps1            # mặc định: 1 file exe, máy đích KHÔNG cần cài gì
 .\publish.ps1 -Install   # publish rồi cài vào %LOCALAPPDATA%\Programs\IDE_Touch_Window và chạy luôn
 ```
 
-| Tham số | Ý nghĩa |
-|---|---|
-| *(mặc định)* | Self-contained win-x64, single-file, có nén — chạy được trên máy Windows sạch |
-| `-FrameworkDependent` | File nhỏ hơn nhiều nhưng máy đích phải cài **.NET 10 Desktop Runtime** |
-| `-Install` | Chép exe vào `%LOCALAPPDATA%\Programs\IDE_Touch_Window` rồi khởi chạy |
+| Chế độ | Kết quả | Máy đích cần cài gì? |
+|---|---|---|
+| **Mặc định** (self-contained) | **1 file** `IDE_Touch_Window.exe` — 67.1 MB | **Không cần gì cả.** Toàn bộ .NET runtime nằm trong exe |
+| `-FrameworkDependent` | 4 file — tổng ~1.2 MB | Phải cài **.NET 10 Desktop Runtime** |
 
-Kết quả nằm ở thư mục `publish/` và chỉ gồm **đúng một file** `IDE_Touch_Window.exe`
-(ảnh nhân vật và icon được nhúng vào assembly).
+Chọn cái nào?
+
+- **Đưa cho người khác / máy lạ** → dùng mặc định. Đổi 67 MB lấy việc không phải cài đặt gì.
+- **Chỉ dùng trên máy đã có .NET 10 SDK/Runtime** → `-FrameworkDependent` nhẹ hơn ~56 lần.
+
+> `-FrameworkDependent` xuất ra **4 file**, phải chép cả thư mục chứ không chép mỗi file `.exe`.
+> Bản này cố tình **không** bật `PublishSingleFile`: khi kết hợp `-r win-x64` +
+> `PublishSingleFile` + `--self-contained false`, .NET SDK vẫn copy toàn bộ 265 file runtime
+> vào build rồi gói hết vào exe, cho ra file 140 MB mà **vẫn** đòi máy đích cài runtime —
+> tệ hơn cả hai lựa chọn trên.
+
+Kết quả nằm ở thư mục `publish/`.
 
 > Thư mục `publish/` bị xoá sạch mỗi lần chạy `publish.ps1`. Đừng đăng ký autostart trỏ
 > vào đó — hãy dùng `-Install` để đưa exe về thư mục cố định.

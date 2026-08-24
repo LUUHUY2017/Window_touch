@@ -29,24 +29,35 @@ $exeName = 'IDE_Touch_Window.exe'
 $publishArgs = @(
     'publish', (Join-Path $root 'IDE_Touch_Window.csproj'),
     '-c', 'Release',
-    '-r', 'win-x64',
     '-o', $outDir,
-    '-p:PublishSingleFile=true',
     '-p:DebugType=none',
     '-p:SatelliteResourceLanguages=en'
 )
 
 if ($FrameworkDependent) {
+    # KHONG dung PublishSingleFile o day: khi co ca -r win-x64 lan PublishSingleFile,
+    # SDK van copy toan bo runtime (265 file) vao build roi goi het vao exe ->
+    # ra file 140 MB ma VAN doi may dich cai .NET Desktop Runtime.
+    # Bo -r va bo single-file thi duoc 4 file / ~1.2 MB dung nghia framework-dependent.
     $publishArgs += '--self-contained'
     $publishArgs += 'false'
 } else {
+    $publishArgs += '-r'
+    $publishArgs += 'win-x64'
     $publishArgs += '--self-contained'
     $publishArgs += 'true'
+    $publishArgs += '-p:PublishSingleFile=true'
     $publishArgs += '-p:IncludeNativeLibrariesForSelfExtract=true'
     $publishArgs += '-p:EnableCompressionInSingleFile=true'
 }
 
-if (Test-Path $outDir) { Remove-Item $outDir -Recurse -Force }
+# Xoa NOI DUNG chu khong xoa ca thu muc: neu co tien trinh nao dang giu handle
+# vao thu muc (Explorer, terminal dang cd vao day) thi Remove-Item ca thu muc se loi.
+if (Test-Path $outDir) {
+    Get-ChildItem $outDir -Force | Remove-Item -Recurse -Force
+} else {
+    New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+}
 
 Write-Host "==> dotnet $($publishArgs -join ' ')" -ForegroundColor Cyan
 & dotnet @publishArgs
@@ -55,9 +66,14 @@ if ($LASTEXITCODE -ne 0) { throw "dotnet publish that bai (exit $LASTEXITCODE)" 
 $exePath = Join-Path $outDir $exeName
 if (-not (Test-Path $exePath)) { throw "Khong tim thay $exePath" }
 
-$sizeMb = [Math]::Round((Get-Item $exePath).Length / 1MB, 1)
+$totalMb = [Math]::Round(((Get-ChildItem $outDir -Recurse -File | Measure-Object Length -Sum).Sum) / 1MB, 2)
+$fileCount = (Get-ChildItem $outDir -Recurse -File | Measure-Object).Count
 Write-Host ""
-Write-Host "OK: $exePath  ($sizeMb MB)" -ForegroundColor Green
+Write-Host "OK: $outDir  ($fileCount file, tong $totalMb MB)" -ForegroundColor Green
+if ($FrameworkDependent) {
+    Write-Host "Luu y: ban nay YEU CAU may dich da cai .NET 10 Desktop Runtime." -ForegroundColor Yellow
+    Write-Host "       Phai chep CA THU MUC, khong chi rieng file .exe." -ForegroundColor Yellow
+}
 Get-ChildItem $outDir | Select-Object Name, @{N='MB';E={[Math]::Round($_.Length/1MB,2)}} | Format-Table
 
 if ($Install) {
@@ -69,7 +85,11 @@ if ($Install) {
     }
 
     New-Item -ItemType Directory -Force -Path $installDir | Out-Null
-    Copy-Item $exePath $installedExe -Force
+    if ($FrameworkDependent) {
+        Copy-Item (Join-Path $outDir '*') $installDir -Recurse -Force
+    } else {
+        Copy-Item $exePath $installedExe -Force
+    }
 
     Write-Host "Da cai vao: $installedExe" -ForegroundColor Green
     Start-Process -FilePath $installedExe -WorkingDirectory $installDir
