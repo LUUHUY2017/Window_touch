@@ -15,6 +15,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Speech" Version="9.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- UseWindowsForms tự thêm implicit using System.Windows.Forms / System.Drawing,
          gây trùng tên với WPF (MessageBox, Point, Button, Application...).
          Gỡ bỏ và using tường minh trong TrayIcon.cs. -->

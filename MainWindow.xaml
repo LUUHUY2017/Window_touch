@@ -187,6 +187,105 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <!-- 🤖 AI Voice Agent Button Style (Vibrant Cyan-Purple Gradient) -->
+        <Style x:Key="AiAgentButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Padding" Value="16,0,18,0"/>
+            <Setter Property="MinWidth" Value="130"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="BorderBrush" Value="#FF38BDF8"/>
+            <Setter Property="Tag" Value="#0EA5E9"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FC0284C7" Offset="0"/>
+                        <GradientStop Color="#FC38BDF8" Offset="0.5"/>
+                        <GradientStop Color="#FC818CF8" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template" Value="{StaticResource AnimatedButtonTemplate}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.07" Duration="0:0:0.15"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.07" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.15"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 🛑 Shutdown Windows Button Style (Crimson Red Gradient) -->
+        <Style x:Key="ShutdownButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Padding" Value="16,0,18,0"/>
+            <Setter Property="MinWidth" Value="130"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="BorderBrush" Value="#FFFCA5A5"/>
+            <Setter Property="Tag" Value="#EF4444"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FCEF4444" Offset="0"/>
+                        <GradientStop Color="#FCDC2626" Offset="0.5"/>
+                        <GradientStop Color="#FC991B1B" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template" Value="{StaticResource AnimatedButtonTemplate}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.07" Duration="0:0:0.15"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.07" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.15"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.15"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
     <Grid x:Name="MainGrid">
@@ -228,16 +327,28 @@
                     Click="BtnScreenshot_Click"/>
 
             <Button x:Name="BtnDesktop" 
-                    Canvas.Left="10" Canvas.Top="160" 
+                    Canvas.Left="10" Canvas.Top="120" 
                     Content="🖥️  Desktop" 
                     Style="{StaticResource DesktopButtonStyle}" 
                     Click="BtnDesktop_Click"/>
 
             <Button x:Name="BtnCommandPrompt" 
-                    Canvas.Left="190" Canvas.Top="160" 
-                    Content="💻  Command Prompt" 
+                    Canvas.Left="190" Canvas.Top="120" 
+                    Content="💻  CMD Prompt" 
                     Style="{StaticResource CommandPromptButtonStyle}" 
                     Click="BtnCommandPrompt_Click"/>
+
+            <Button x:Name="BtnAiAgent" 
+                    Canvas.Left="100" Canvas.Top="205" 
+                    Content="🤖  Lily AI Agent" 
+                    Style="{StaticResource AiAgentButtonStyle}" 
+                    Click="BtnAiAgent_Click"/>
+
+            <Button x:Name="BtnShutdown" 
+                    Canvas.Left="100" Canvas.Top="270" 
+                    Content="🛑  Tắt Máy Windows" 
+                    Style="{StaticResource ShutdownButtonStyle}" 
+                    Click="BtnShutdown_Click"/>
         </Canvas>
 
         <!-- Notification Toast Banner (ZIndex 200) -->
@@ -297,6 +408,76 @@
                        FontSize="13" 
                        TextWrapping="Wrap" 
                        LineHeight="19"/>
+        </Border>
+
+        <!-- AI Voice & Chat Interactive Input Box (ZIndex 180) -->
+        <Border x:Name="AiChatPanel" 
+                Panel.ZIndex="180"
+                Width="320" 
+                Background="#F00F172A" 
+                BorderBrush="#FF38BDF8" 
+                BorderThickness="1.5"
+                CornerRadius="20" 
+                Padding="8,6,8,6" 
+                VerticalAlignment="Bottom" 
+                HorizontalAlignment="Center" 
+                Margin="0,0,0,15" 
+                Visibility="Collapsed">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.6" Color="#38BDF8"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="AiInputTextBox" 
+                         Grid.Column="0" 
+                         Background="Transparent" 
+                         BorderThickness="0" 
+                         Foreground="White" 
+                         FontSize="13" 
+                         Padding="8,6,8,6" 
+                         VerticalAlignment="Center"
+                         KeyDown="AiInputTextBox_KeyDown"/>
+
+                <Button x:Name="BtnSpeakText" 
+                        Grid.Column="1" 
+                        Content="🔊" 
+                        Width="32" Height="32" 
+                        Margin="4,0,4,0" 
+                        Background="#3338BDF8" 
+                        Foreground="White" 
+                        BorderThickness="0" 
+                        Cursor="Hand"
+                        ToolTip="Nghe đọc giọng AI (TTS)"
+                        Click="BtnSpeakText_Click">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="16"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
+                <Button x:Name="BtnSendAiMessage" 
+                        Grid.Column="2" 
+                        Content="🚀" 
+                        Width="32" Height="32" 
+                        Background="#FF0EA5E9" 
+                        Foreground="White" 
+                        BorderThickness="0" 
+                        Cursor="Hand"
+                        ToolTip="Gửi câu hỏi cho Lily AI Agent"
+                        Click="BtnSendAiMessage_Click">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="16"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </Grid>
         </Border>
     </Grid>
 </Window>

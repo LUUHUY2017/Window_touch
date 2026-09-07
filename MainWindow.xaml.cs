@@ -393,7 +393,7 @@ public partial class MainWindow : Window
                 DependencyObject? dObj = hitResult.VisualHit;
                 while (dObj != null && dObj != MainGrid)
                 {
-                    if (dObj is Button || dObj == ToastNotification || dObj == ChatBubble)
+                    if (dObj is Button || dObj is TextBox || dObj == ToastNotification || dObj == ChatBubble || dObj == AiChatPanel)
                     {
                         handled = true;
                         return HTCLIENT;
@@ -749,6 +749,80 @@ public partial class MainWindow : Window
 
         ToastNotification.BeginAnimation(UIElement.OpacityProperty, fadeIn);
         ToastNotification.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+    }
+
+    private void BtnAiAgent_Click(object sender, RoutedEventArgs e)
+    {
+        CloseMenu();
+
+        if (AiChatPanel.Visibility == Visibility.Visible)
+        {
+            AiChatPanel.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            AiChatPanel.Visibility = Visibility.Visible;
+            AiInputTextBox.Focus();
+            ShowChatBubble("🤖 Em đang lắng nghe! Anh hãy nhập câu hỏi hoặc câu lệnh nhé!");
+            AiAgentService.Instance.SpeakText("Em đang lắng nghe! Anh hãy nhập câu hỏi hoặc câu lệnh nhé!");
+        }
+    }
+
+    private async void BtnSendAiMessage_Click(object sender, RoutedEventArgs e)
+    {
+        await ProcessAiUserMessageAsync();
+    }
+
+    private async void AiInputTextBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            await ProcessAiUserMessageAsync();
+        }
+    }
+
+    private async Task ProcessAiUserMessageAsync()
+    {
+        string text = AiInputTextBox.Text.Trim();
+        if (string.IsNullOrEmpty(text)) return;
+
+        AiInputTextBox.Text = "";
+        ShowChatBubble($"💬 Anh: {text}");
+
+        // Gọi AI Agent Service
+        string response = await AiAgentService.Instance.AskAiAsync(text);
+        
+        // Hiển thị bong bóng thoại và đọc tiếng nói TTS
+        ShowChatBubble($"🌸 Lily: {response}");
+        AiAgentService.Instance.SpeakText(response);
+    }
+
+    private void BtnSpeakText_Click(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(ChatText.Text))
+        {
+            AiAgentService.Instance.SpeakText(ChatText.Text);
+            ShowToast("🔊 Đang đọc văn bản...");
+        }
+    }
+
+    private void BtnShutdown_Click(object sender, RoutedEventArgs e)
+    {
+        CloseMenu();
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "shutdown.exe",
+                Arguments = "/s /t 0",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Lỗi tắt máy: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     #endregion
